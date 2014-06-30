@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require 'httparty'
+
+posts = HTTParty.get("http://hmans.io/posts.json")
+
+posts.first(5).each do |post|
+  puts "POST: #{post['url']}\n\n"
+  puts post['body']
+  puts "\n\n\n"
+end
