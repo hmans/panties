@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
-require 'httparty'
+require 'panties'
 
-posts = HTTParty.get("http://hmans.io/posts.json")
+client = Panties::Client.new('http://andy.pants.dev')
+posts = client.posts
 
 posts.first(5).each do |post|
   puts "POST: #{post['url']}\n\n"
