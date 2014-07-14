@@ -1,16 +1,30 @@
 #!/usr/bin/env ruby
 require 'panties'
+require 'thor'
 require 'pry'
 
-# Panties::Client.debug_output
+class PantiesCLI < Thor
+  desc "timeline", "Display your timeline"
+  def timeline
+    posts = client.timeline
+    posts.first(5).each do |post|
+      puts "POST: #{post['url']}\n\n"
+      puts post['body']
+      puts "\n\n\n"
+    end
+  end
 
-client = Panties::Client.new('http://andy.pants.dev')
+private
+
+  def client
+    @client ||= Panties::Client.new('http://andy.pants.dev')
+  end
+end
+
+# Panties::Client.debug_output
+PantiesCLI.start(ARGV)
+
+
 
 # client.create_post 'Hi from panties!'
 
-posts = client.timeline
-posts.first(5).each do |post|
-  puts "POST: #{post['url']}\n\n"
-  puts post['body']
-  puts "\n\n\n"
-end
