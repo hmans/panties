@@ -1,9 +1,14 @@
 #!/usr/bin/env ruby
 require 'panties'
+require 'pry'
+
+# Panties::Client.debug_output
 
 client = Panties::Client.new('http://andy.pants.dev')
-posts = client.posts
 
+# client.create_post 'Hi from panties!'
+
+posts = client.timeline
 posts.first(5).each do |post|
   puts "POST: #{post['url']}\n\n"
   puts post['body']

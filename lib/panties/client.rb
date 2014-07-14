@@ -5,13 +5,28 @@ module Panties
   class Client
     include HTTParty
 
+    attr_reader :token
+
     def initialize(uri)
       @base_uri = uri
       discover_urls
+      authenticate
     end
 
     def posts
       get(@posts_path)
+    end
+
+    def timeline
+      get(@timeline_path, body: { token: token })
+    end
+
+    def create_post(body)
+      post = {
+        body: body
+      }
+
+      post(@posts_path, body: { post: post, token: @token })
     end
 
   private
@@ -21,9 +36,19 @@ module Panties
       r = get('/')
       doc = Nokogiri::HTML(r.body)
 
-      # Find posts JSON
-      links = doc.css('link[rel="pants.posts"]')
-      @posts_path = links.any? ? links.first[:href] : '/posts.json'
+      @posts_path    = find_link(doc, 'pants.post') || '/posts.json'
+      @login_path    = find_link(doc, 'pants.login') || '/login.json'
+      @timeline_path = find_link(doc, 'pants.timeline') || '/network.json'
+    end
+
+    def find_link(doc, rel)
+      el = doc.css("link[rel=\"#{rel}\"]").first
+      el ? el[:href] : nil
+    end
+
+    def authenticate
+      r = post(@login_path, body: { login: { password: "secret" }})
+      @token = r['token']
     end
 
     def get(path, *args)
