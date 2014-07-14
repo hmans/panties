@@ -17,6 +17,11 @@ class PantiesCLI < Thor
     end
   end
 
+  desc "create TEXT", "Create a new post on your site"
+  def create(text)
+    client.create_post(text)
+  end
+
 private
 
   def client
