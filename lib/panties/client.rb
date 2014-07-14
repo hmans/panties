@@ -6,12 +6,13 @@ module Panties
     include HTTParty
 
     attr_reader :token
+    attr_reader :site
 
     def initialize(uri, password)
       @base_uri = uri
       @password = password
 
-      discover_urls
+      load_site_data
       authenticate
     end
 
@@ -20,7 +21,7 @@ module Panties
     end
 
     def timeline
-      get(@timeline_path, body: { token: token })
+      get(endpoints['timeline'], body: { token: token })
     end
 
     def create_post(body)
@@ -28,21 +29,23 @@ module Panties
         body: body
       }
 
-      post(@posts_path, body: { post: post, token: @token })
+      post(endpoints['posts'], body: { post: post, token: @token })
     end
 
   private
 
-    def discover_urls
+    def load_site_data
       # Load front page and start tag discovery
       r = get('/')
       raise "Failed to perform link discovery" unless r.code == 200
 
       doc = Nokogiri::HTML(r.body)
+      pants_path = find_link(doc, 'pants') || '/pants.json'
 
-      @posts_path    = find_link(doc, 'pants.post') || '/posts.json'
-      @login_path    = find_link(doc, 'pants.login') || '/login.json'
-      @timeline_path = find_link(doc, 'pants.timeline') || '/network.json'
+      # Load site data
+      r = get(pants_path)
+      raise "Failed to load site data" unless r.code == 200
+      @site = r.to_hash['pants']
     end
 
     def find_link(doc, rel)
@@ -51,7 +54,7 @@ module Panties
     end
 
     def authenticate
-      r = post(@login_path, body: { login: { password: @password }})
+      r = post(endpoints['login'], body: { login: { password: @password }})
       raise "Failed to authenticate" unless r.code == 200
       @token = r['token']
     end
@@ -62,6 +65,10 @@ module Panties
 
     def post(path, *args)
       self.class.post(URI.join(@base_uri, path), *args)
+    end
+
+    def endpoints
+      @site['endpoints']
     end
   end
 end
