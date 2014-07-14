@@ -7,8 +7,10 @@ module Panties
 
     attr_reader :token
 
-    def initialize(uri)
+    def initialize(uri, password)
       @base_uri = uri
+      @password = password
+
       discover_urls
       authenticate
     end
@@ -34,6 +36,8 @@ module Panties
     def discover_urls
       # Load front page and start tag discovery
       r = get('/')
+      raise "Failed to perform link discovery" unless r.code == 200
+
       doc = Nokogiri::HTML(r.body)
 
       @posts_path    = find_link(doc, 'pants.post') || '/posts.json'
@@ -47,7 +51,8 @@ module Panties
     end
 
     def authenticate
-      r = post(@login_path, body: { login: { password: "secret" }})
+      r = post(@login_path, body: { login: { password: @password }})
+      raise "Failed to authenticate" unless r.code == 200
       @token = r['token']
     end
 

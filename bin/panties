@@ -4,6 +4,9 @@ require 'thor'
 require 'pry'
 
 class PantiesCLI < Thor
+  class_option :site, required: true
+  class_option :password, required: true
+
   desc "timeline", "Display your timeline"
   def timeline
     posts = client.timeline
@@ -17,7 +20,7 @@ class PantiesCLI < Thor
 private
 
   def client
-    @client ||= Panties::Client.new('http://andy.pants.dev')
+    @client ||= Panties::Client.new(options[:site], options[:password])
   end
 end
 
